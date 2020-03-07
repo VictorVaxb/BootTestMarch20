@@ -29,11 +29,19 @@ public class StocksController {
 												@RequestParam String end){
 		List<Float> lstPrices = tradeServ.findMaxMinBySymbol(symbol, start, end);
 		
+		System.out.println("symbol: " + symbol);
+		System.out.println("start: " + start);
+		System.out.println("end: " + end);
+		
 		if(lstPrices != null) {
+			System.out.println("lstPrices not null");
+			System.out.println("lstPrices: " + lstPrices.toString());
 			if(lstPrices.size() > 1) {
+				System.out.println("lstPrices not null");
 				Map<String, String> resp = new HashMap<String, String>();
 				resp.put("highest", lstPrices.get(0).toString());
 				resp.put("lowest", lstPrices.get(1).toString());
+				return new ResponseEntity<Map<String, String>>(resp, HttpStatus.OK);
 			}
 		}
 		

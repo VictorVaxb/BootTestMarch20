@@ -10,8 +10,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.PrePersist;
 import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 @Entity
 @Table(name="trade")
@@ -20,21 +20,24 @@ public class Trade implements Serializable {
 	private static final long serialVersionUID = 1L;
 	
 	@Id
-	@GeneratedValue(strategy= GenerationType.IDENTITY)
+	//@GeneratedValue(strategy= GenerationType.IDENTITY)
 	private Long id;
     private String type;
     private User user;
     private String symbol;
     private Integer shares;
     private Float price;
+    //@Temporal(TemporalType.TIMESTAMP)
 	@Column(name="timestamp")
-	@Temporal(TemporalType.TIMESTAMP)
+	@JsonFormat(shape=JsonFormat.Shape.STRING, pattern="yyyy-MM-dd HH:mm:ss")
     private Timestamp timestamp;
     
+	/*
 	@PrePersist
 	public void prePersist() {
 		timestamp = new Timestamp(System.currentTimeMillis());
 	}
+	*/
 	
     public Trade() {}
     

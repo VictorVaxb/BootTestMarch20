@@ -16,17 +16,44 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.hackerrank.stocktrade.service.ITradeService;
+import com.hackerrank.stocktrade.service.IUserService;
 import com.hackerrank.stocktrade.model.Trade;
 import com.hackerrank.stocktrade.model.User;
 
 @RestController
-@RequestMapping(value = "/trades")
+@RequestMapping(value = "/")
 public class TradesController {
     
 	@Autowired
+	private IUserService userServ;
+	
+	@Autowired
 	private ITradeService tradeServ;
 	
-	@GetMapping("/list")
+	@PostMapping("/trades") //OK
+	public ResponseEntity<?> saveTrade(@RequestBody Trade trade){
+		System.out.println("saveTrade()");
+		System.out.println("Id: " + trade.getUser().getId());
+		System.out.println("User: " + trade.getUser().getName());
+		
+		Trade tradeDb = tradeServ.findTradeById(trade.getId());
+		
+		if(tradeDb == null) {
+			User usrBd = userServ.findUserById(trade.getUser().getId());
+			if(usrBd == null) {
+				User newUser = new User(trade.getUser().getId(), trade.getUser().getName());
+				userServ.saveUser(newUser);
+			}
+			
+			tradeServ.saveTrade(trade);
+			System.out.println("Se guardo trade");
+			return new ResponseEntity<Void>(HttpStatus.CREATED);
+		}else {
+			return new ResponseEntity<Void>(HttpStatus.BAD_REQUEST);
+		}
+	}
+	
+	@GetMapping("/trades") //OK
 	public ResponseEntity<?> getAllTrades(){
 		System.out.println("getAllTrades()");
 		List<Trade> listTrades = tradeServ.findAllTrades();
@@ -41,27 +68,27 @@ public class TradesController {
 		}
 	}
 	
-	@GetMapping("/findtradebyid")
-	public ResponseEntity<?> findTradeById(@RequestBody Long id){
-		Optional<Trade> trade = tradeServ.findTradeById(id);
-		return new ResponseEntity<Optional<Trade>>(trade, HttpStatus.OK);
+	@GetMapping("/trades/{id}") //OK
+	public ResponseEntity<?> findTradeById(@PathVariable(value="id") Long id){
+		Trade trade = tradeServ.findTradeById(id);
+		if(trade == null) {
+			return new ResponseEntity<Void>(HttpStatus.NOT_FOUND);	
+		}
+		return new ResponseEntity<Trade>(trade, HttpStatus.OK);
 	}
 	
-	@PostMapping("/newtrade")
-	public ResponseEntity<?> saveTrade(@RequestBody Trade trade){
-		tradeServ.saveTrade(trade);
-		return new ResponseEntity<Void>(HttpStatus.CREATED);
-	}
-	
-	@DeleteMapping("/deletetrades")
+	@DeleteMapping("/erase") //OK
 	public ResponseEntity<?> deleteAllTrades(){
+		System.out.println("deletetrades");
 		tradeServ.deleteAllTrades();
 		return new ResponseEntity<Void>(HttpStatus.OK);
 	}
 	
-	@GetMapping("/findtradesbyuser")
-	public ResponseEntity<?> findTradesByUser(@RequestBody User user){
-		List<Trade> trades = tradeServ.findAllByUser(user);
+	@GetMapping("/trades/users/{id}")
+	public ResponseEntity<?> findTradesByUser(@PathVariable(value="id") Long id){
+		User userDb = userServ.findUserById(id);
+		
+		List<Trade> trades = tradeServ.findAllByUser(userDb);
 		if(trades != null) {
 			if(trades.size() > 0) {
 				return new ResponseEntity<List<Trade>>(trades, HttpStatus.OK);
@@ -73,10 +100,14 @@ public class TradesController {
 		}
 	}
 	
-	@GetMapping("/stocks/{symbol}")
+	@GetMapping("/trades/stocks/{symbol}") //OK
 	public ResponseEntity<?> findTradesByStockDates(@PathVariable(value="symbol") String symbol, 
 													@RequestParam String start,
 													@RequestParam String end){
+		System.out.println("Symbol: " + symbol);
+		System.out.println("Start: " + start);
+		System.out.println("End: " + end);
+		
 		List<Trade> trades = tradeServ.findTradesByStockDates(symbol, start, end);
 		
 		if(trades != null) {

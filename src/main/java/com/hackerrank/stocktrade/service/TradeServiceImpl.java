@@ -1,8 +1,9 @@
 package com.hackerrank.stocktrade.service;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,9 @@ public class TradeServiceImpl implements ITradeService {
 
 	@Autowired
 	private ITradeDao tradeDao;
+	
+	private static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+	//private static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 	
 	@Override
 	public List<Trade> findAllTrades() {
@@ -35,8 +39,8 @@ public class TradeServiceImpl implements ITradeService {
 	}
 
 	@Override
-	public Optional<Trade> findTradeById(Long tradeid) {
-		Optional<Trade> trade = tradeDao.findById(tradeid);
+	public Trade findTradeById(Long tradeid) {
+		Trade trade = tradeDao.findByIdSQL(tradeid);
 		return trade;
 	}
 
@@ -48,19 +52,48 @@ public class TradeServiceImpl implements ITradeService {
 
 	@Override
 	public List<Trade> findTradesByStockDates(String symbol, String startdate, String enddate) {
-		List<Trade> trades = tradeDao.findByStockDate(symbol, startdate, enddate);
-		return trades;
+		
+		Date startDate = null;
+		Date endDate = null;
+		
+		try {
+			startDate = dateFormat.parse(startdate);
+			endDate = dateFormat.parse(enddate);
+			List<Trade> trades = tradeDao.findByStockDate(symbol, startDate, endDate);
+			return trades;
+		} catch (Exception e) {
+			System.out.println("ERROR: " + e.getMessage());
+		}
+		return null;
 	}
 
 	@Override
 	public List<Float> findMaxMinBySymbol(String symbol, String startdate, String enddate) {
 		List<Float> listprices = new ArrayList<>();
-		Float max = tradeDao.findHighPriceTrade(symbol, startdate, enddate);
-		Float min = tradeDao.findHighPriceTrade(symbol, startdate, enddate);
-		listprices.add(max);
-		listprices.add(min);
+		Date startDate = null;
+		Date endDate = null;
 		
-		return listprices;
+		try {
+			startDate = dateFormat.parse(startdate);
+			endDate = dateFormat.parse(enddate);
+			
+			Float max = tradeDao.findHighPriceTrade(symbol, startDate, endDate);
+			System.out.println("Max: " + max);
+			Float min = tradeDao.findLowPriceTrade(symbol, startDate, endDate);
+			System.out.println("Min: " + min);
+			
+			if(max != null && min != null) {
+				listprices.add(max);
+				listprices.add(min);
+			
+				return listprices;
+			}else {
+				return null;
+			}
+		}catch(Exception e) {
+			System.out.println("ERROR: " + e.getMessage());
+			return null;
+		}
 	}
 
 }

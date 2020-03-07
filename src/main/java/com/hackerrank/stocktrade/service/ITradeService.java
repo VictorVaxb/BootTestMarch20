@@ -14,7 +14,7 @@ public interface ITradeService {
 	
 	public void saveTrade(Trade trade);
 	
-	public Optional<Trade> findTradeById(Long tradeid);
+	public Trade findTradeById(Long tradeid);
 	
 	public List<Trade> findAllByUser(User user);
 	
